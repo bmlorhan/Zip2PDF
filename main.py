@@ -14,13 +14,23 @@
 # JPG files can now be selected and converted to a single PDF file at desired location with desired name.
 # Added window close confirmation messagebox.
 
+# Version 0.4.1
+# Fixed error after packaging with pyinstaller that required _cpphelpers from pikepdf
+# Removed console window from loading with executable ( future reference, -w )
 
 # required modules
 import errno
 import os
 import codecs
+
+# ZIP extracting libraries
 from zipfile import ZipFile
+
+# Image to PDF libraries
 import img2pdf
+from pikepdf import _cpphelpers # to resolve error after packaging
+
+# GUI libraries
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
