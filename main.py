@@ -28,7 +28,7 @@ from zipfile import ZipFile
 
 # Image to PDF libraries
 import img2pdf
-from pikepdf import _cpphelpers # to resolve error after packaging
+from pikepdf import _cpphelpers                             # to resolve error after packaging
 
 # GUI libraries
 import tkinter as tk
