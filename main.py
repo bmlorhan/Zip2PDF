@@ -2,19 +2,25 @@
 # Extract files from Zip file into new folder with the same name at the same location.
 
 # Version 0.3
-# GUI added using tkinter
-# Functional extraction with select file and extract buttons
+# GUI added using tkinter.
+# Functional extraction with select file and extract buttons.
 
 # Version 0.3.1
-# ZIP extraction can now select and extract multiple files
+# ZIP extraction can now select and extract multiple files.
 # Added Exit Application button.
+
+# Version 0.4
+# Primary features are complete.
+# JPG files can now be selected and converted to a single PDF file at desired location with desired name.
+# Added window close confirmation messagebox.
+
 
 # required modules
 import errno
 import os
 import codecs
 from zipfile import ZipFile
-from PIL import Image
+import img2pdf
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
@@ -47,17 +53,14 @@ def selectImageFile():
     global image_list
     image_list = []
     image_file_path = filedialog.askopenfilenames()
-
-    for image_files in image_file_path:
-        converted_images = Image.open(image_files)
-        converted_images.convert('RGB')
-        image_list.append(converted_images)
+    for images in image_file_path:
+        image_list.append(images)
 
 
 def convertImageFile():
     export_file_path = filedialog.asksaveasfilename(defaultextension='.pdf')
-    for images in image_list:
-        images.save(export_file_path, save_all=True, append_images=image_list)
+    with open(export_file_path, "wb") as f:
+        f.write(img2pdf.convert(image_list))
 
 
 # Button for selecting Image File(s) to convert
@@ -124,11 +127,18 @@ extractZipButton = tk.Button(text="Extract ZIP file(s)", command=extractZipFile,
 canvas1.create_window(125, 190, window=extractZipButton)
 
 
+# Window close confirmation
+def windowClose():
+    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        root.destroy()
+
+
 # Close application button
-closeApplicationButton = tk.Button(text="Close Application", command=root.destroy, bg='red', fg='white',
+closeApplicationButton = tk.Button(text="Close Application", command=windowClose, bg='red', fg='white',
                                    font=('helvetica', 12, 'bold'))
 canvas1.create_window(235, 300, window=closeApplicationButton)
 
 
 if __name__ == "__main__":
+    root.protocol("WM_DELETE_WINDOW", windowClose)
     root.mainloop()
