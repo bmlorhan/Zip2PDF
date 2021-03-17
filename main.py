@@ -22,6 +22,7 @@ from tkinter import messagebox
 
 root = tk.Tk()
 
+# Create window with labels above appropriate buttons
 canvas1 = tk.Canvas(root, width=450, height=450, bg='lightsteelblue2', relief='raised')
 canvas1.pack()
 
@@ -43,33 +44,36 @@ canvas1.create_window(325, 100, window=convertLabel)
 
 # Select File function.
 def selectImageFile():
-    global im1
-
-    import_file_path = filedialog.askopenfilename()
-    image1 = Image.open(import_file_path)
-    im1 = image1.convert('RGB')
+    global image_list
     image_list = []
-    image_list.append(im1)
-    print(image_list)
+    image_file_path = filedialog.askopenfilenames()
+
+    for image_files in image_file_path:
+        converted_images = Image.open(image_files)
+        converted_images.convert('RGB')
+        image_list.append(converted_images)
 
 
 def convertImageFile():
-    pass
+    export_file_path = filedialog.asksaveasfilename(defaultextension='.pdf')
+    for images in image_list:
+        images.save(export_file_path, save_all=True, append_images=image_list)
 
 
 # Button for selecting Image File(s) to convert
-convertBrowseButton = tk.Button(text="Select File", command=selectImageFile, bg='green', fg='white',
+convertBrowseButton = tk.Button(text="Select Image file(s)", command=selectImageFile, bg='green', fg='white',
                                 font=('helvetica', 12, 'bold'))
 canvas1.create_window(325, 140, window=convertBrowseButton)
 
 # Button for converting selected file(s) to PDF
-convertImageButton = tk.Button(text="Select File", command=convertImageFile, bg='green', fg='white',
+convertImageButton = tk.Button(text="Convert Files to PDF", command=convertImageFile, bg='green', fg='white',
                                font=('helvetica', 12, 'bold'))
 canvas1.create_window(325, 190, window=convertImageButton)
 
 
 def selectZipFile():
     global zip_file_path_list
+    zip_file_path_list = []
     zip_file_path = filedialog.askopenfilenames()
     zip_file_path_list = list(zip_file_path)
 
@@ -110,12 +114,12 @@ def extractZipFile():
 
 
 # Button for selecting ZIP to extract
-extractBrowseButton = tk.Button(text="Select File", command=selectZipFile, bg='green', fg='white',
+extractBrowseButton = tk.Button(text="Select ZIP file(s)", command=selectZipFile, bg='green', fg='white',
                                 font=('helvetica', 12, 'bold'))
 canvas1.create_window(125, 140, window=extractBrowseButton)
 
 # Button to extract selected ZIP file
-extractZipButton = tk.Button(text="Extract", command=extractZipFile, bg='green', fg='white',
+extractZipButton = tk.Button(text="Extract ZIP file(s)", command=extractZipFile, bg='green', fg='white',
                              font=('helvetica', 12, 'bold'))
 canvas1.create_window(125, 190, window=extractZipButton)
 
@@ -124,6 +128,7 @@ canvas1.create_window(125, 190, window=extractZipButton)
 closeApplicationButton = tk.Button(text="Close Application", command=root.destroy, bg='red', fg='white',
                                    font=('helvetica', 12, 'bold'))
 canvas1.create_window(235, 300, window=closeApplicationButton)
+
 
 if __name__ == "__main__":
     root.mainloop()
