@@ -78,11 +78,10 @@ def selectZipFile():
 def extractZipFile():
     # get zip file name
     zip_folder_name = zip_file_path_list
-    print(zip_folder_name)
-    # path and directory for extracted files.
-    # Creates directory in the same location as ZIP file, under the same name. Removes '.zip'
 
     for file_path in zip_folder_name:
+        # path and directory for extracted files.
+        # Creates directory in the same location as ZIP file, under the same name. Removes '.zip'
         directory = file_path.replace('.zip', '')
         with ZipFile(file_path, 'r') as zip_ref:
             for f in zip_ref.infolist():
