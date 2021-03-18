@@ -19,6 +19,7 @@
 
 # Version 0.5
 # Introduced MainApplication class. Currently all functions are nested in it, but they may be separated.
+# Added custom Icon
 
 # required modules
 import errno
@@ -36,19 +37,24 @@ from pikepdf import _cpphelpers                             # to resolve error a
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter import PhotoImage
 
 
 class MainApplication:
     # GUI
     def __init__(self, master):
         self.master = master
-        master.title("ZIP2PDF")
-        master.protocol("WM_DELETE_WINDOW", self.windowClose)
+        master.title('ZIP2PDF')
+        master.protocol('WM_DELETE_WINDOW', self.windowClose)
 
         # Canvas
         # Create window with labels above appropriate buttons
         self.canvas1 = tk.Canvas(master, width=450, height=450, bg='lightsteelblue2', relief='raised')
         self.canvas1.pack()
+
+        # Icons
+        icon1 = tk.PhotoImage(file='icons/ZIP2PDF_Logo.png')
+        master.iconphoto(True, icon1)
 
         # Labels
         # Application Name Label
@@ -93,23 +99,25 @@ class MainApplication:
         self.canvas1.create_window(235, 300, window=self.closeApplicationButton)
 
     # Functions
-        # Select File function.
+    # Select Image file(s) function.
     def selectImageFile(self):
         self.image_list = []
         image_file_path = filedialog.askopenfilenames()
         for images in image_file_path:
             self.image_list.append(images)
 
+    # Convert to PDF function
     def convertImageFile(self):
         export_file_path = filedialog.asksaveasfilename(defaultextension='.pdf')
         with open(export_file_path, "wb") as f:
             f.write(img2pdf.convert(self.image_list))
 
+    # Select ZIP file function
     def selectZipFile(self):
         zip_file_path = filedialog.askopenfilenames()
         self.zip_file_path_list = list(zip_file_path)
 
-    # extract function
+    # ZIP Extraction function
     def extractZipFile(self):
         # get zip file name
         zip_folder_name = self.zip_file_path_list
