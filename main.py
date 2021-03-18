@@ -16,7 +16,9 @@
 
 # Version 0.4.1
 # Fixed error after packaging with pyinstaller that required _cpphelpers from pikepdf
-# Removed console window from loading with executable ( future reference, -w )
+
+# Version 0.5
+# Introduced MainApplication class. Currently all functions are nested in it, but they may be separated.
 
 # required modules
 import errno
@@ -36,119 +38,122 @@ from tkinter import filedialog
 from tkinter import messagebox
 
 
-root = tk.Tk()
+class MainApplication:
+    # GUI
+    def __init__(self, master):
+        self.master = master
+        master.title("ZIP2PDF")
+        master.protocol("WM_DELETE_WINDOW", self.windowClose)
 
-# Create window with labels above appropriate buttons
-canvas1 = tk.Canvas(root, width=450, height=450, bg='lightsteelblue2', relief='raised')
-canvas1.pack()
+        # Canvas
+        # Create window with labels above appropriate buttons
+        self.canvas1 = tk.Canvas(master, width=450, height=450, bg='lightsteelblue2', relief='raised')
+        self.canvas1.pack()
 
-# Application Name Label
-appNameLabel = tk.Label(root, text='Zip2PDF', bg='lightsteelblue2')
-appNameLabel.config(font=('helvetica', 20))
-canvas1.create_window(235, 60, window=appNameLabel)
+        # Labels
+        # Application Name Label
+        self.appNameLabel = tk.Label(master, text='Zip2PDF', bg='lightsteelblue2')
+        self.appNameLabel.config(font=('helvetica', 20))
+        self.canvas1.create_window(235, 60, window=self.appNameLabel)
 
-# Extract Function Label
-extractLabel = tk.Label(root, text='Extract ZIP', bg='lightsteelblue2')
-extractLabel.config(font=('helvetica', 16))
-canvas1.create_window(125, 100, window=extractLabel)
+        # Extract Function Label
+        self.extractLabel = tk.Label(master, text='Extract ZIP', bg='lightsteelblue2')
+        self.extractLabel.config(font=('helvetica', 16))
+        self.canvas1.create_window(125, 100, window=self.extractLabel)
 
-# Convert Function Label
-convertLabel = tk.Label(root, text='Convert to PDF', bg='lightsteelblue2')
-convertLabel.config(font=('helvetica', 16))
-canvas1.create_window(325, 100, window=convertLabel)
+        # Convert Function Label
+        self.convertLabel = tk.Label(master, text='Convert to PDF', bg='lightsteelblue2')
+        self.convertLabel.config(font=('helvetica', 16))
+        self.canvas1.create_window(325, 100, window=self.convertLabel)
 
+        # Buttons
+        # Button for selecting Image File(s) to convert
+        self.convertBrowseButton = tk.Button(text="Select Image file(s)", command=self.selectImageFile,
+                                             bg='green', fg='white',font=('helvetica', 12, 'bold'))
+        self.canvas1.create_window(325, 140, window=self.convertBrowseButton)
 
-# Select File function.
-def selectImageFile():
-    global image_list
-    image_list = []
-    image_file_path = filedialog.askopenfilenames()
-    for images in image_file_path:
-        image_list.append(images)
+        # Button for converting selected file(s) to PDF
+        self.convertImageButton = tk.Button(text="Convert Files to PDF", command=self.convertImageFile,
+                                            bg='green', fg='white',font=('helvetica', 12, 'bold'))
+        self.canvas1.create_window(325, 190, window=self.convertImageButton)
 
+        # Button for selecting ZIP to extract
+        self.extractBrowseButton = tk.Button(text="Select ZIP file(s)", command=self.selectZipFile,
+                                             bg='green', fg='white', font=('helvetica', 12, 'bold'))
+        self.canvas1.create_window(125, 140, window=self.extractBrowseButton)
 
-def convertImageFile():
-    export_file_path = filedialog.asksaveasfilename(defaultextension='.pdf')
-    with open(export_file_path, "wb") as f:
-        f.write(img2pdf.convert(image_list))
+        # Button to extract selected ZIP file
+        self.extractZipButton = tk.Button(text="Extract ZIP file(s)", command=self.extractZipFile,
+                                          bg='green', fg='white', font=('helvetica', 12, 'bold'))
+        self.canvas1.create_window(125, 190, window=self.extractZipButton)
 
+        # Close application button
+        self.closeApplicationButton = tk.Button(text="Close Application", command=self.windowClose,
+                                                bg='red', fg='white', font=('helvetica', 12, 'bold'))
+        self.canvas1.create_window(235, 300, window=self.closeApplicationButton)
 
-# Button for selecting Image File(s) to convert
-convertBrowseButton = tk.Button(text="Select Image file(s)", command=selectImageFile, bg='green', fg='white',
-                                font=('helvetica', 12, 'bold'))
-canvas1.create_window(325, 140, window=convertBrowseButton)
+    # Functions
+        # Select File function.
+    def selectImageFile(self):
+        self.image_list = []
+        image_file_path = filedialog.askopenfilenames()
+        for images in image_file_path:
+            self.image_list.append(images)
 
-# Button for converting selected file(s) to PDF
-convertImageButton = tk.Button(text="Convert Files to PDF", command=convertImageFile, bg='green', fg='white',
-                               font=('helvetica', 12, 'bold'))
-canvas1.create_window(325, 190, window=convertImageButton)
+    def convertImageFile(self):
+        export_file_path = filedialog.asksaveasfilename(defaultextension='.pdf')
+        with open(export_file_path, "wb") as f:
+            f.write(img2pdf.convert(self.image_list))
 
+    def selectZipFile(self):
+        zip_file_path = filedialog.askopenfilenames()
+        self.zip_file_path_list = list(zip_file_path)
 
-def selectZipFile():
-    global zip_file_path_list
-    zip_file_path_list = []
-    zip_file_path = filedialog.askopenfilenames()
-    zip_file_path_list = list(zip_file_path)
+    # extract function
+    def extractZipFile(self):
+        # get zip file name
+        zip_folder_name = self.zip_file_path_list
 
+        for file_path in zip_folder_name:
+            # path and directory for extracted files.
+            # Creates directory in the same location as ZIP file, under the same name. Removes '.zip'
+            directory = file_path.replace('.zip', '')
+            with ZipFile(file_path, 'r') as zip_ref:
+                for f in zip_ref.infolist():
+                    bad_filename = f.filename
+                    if bytes != str:
+                        bad_filename = bytes(bad_filename, 'cp437')
 
-# extract function
-def extractZipFile():
-    # get zip file name
-    zip_folder_name = zip_file_path_list
-
-    for file_path in zip_folder_name:
-        # path and directory for extracted files.
-        # Creates directory in the same location as ZIP file, under the same name. Removes '.zip'
-        directory = file_path.replace('.zip', '')
-        with ZipFile(file_path, 'r') as zip_ref:
-            for f in zip_ref.infolist():
-                bad_filename = f.filename
-                if bytes != str:
-                    bad_filename = bytes(bad_filename, 'cp437')
-
-                # decode to sjis
-                try:
-                    uf = codecs.decode(bad_filename, 'sjis')
-                except UnicodeDecodeError:
-                    print('uf did not decode to "sjis", attempting to decode to shift_jisx0213. ')
-                    uf = codecs.decode(bad_filename, 'shift_jisx0213')
-
-                filename = os.path.join(directory, uf)
-                if not os.path.exists(os.path.dirname(filename)):
+                    # decode to sjis
                     try:
-                        os.makedirs(os.path.dirname(filename))
-                    except OSError as exc:
-                        if exc.errno != errno.EEXIST:
-                            raise
+                        uf = codecs.decode(bad_filename, 'sjis')
+                    except UnicodeDecodeError:
+                        print('uf did not decode to "sjis", attempting to decode to shift_jisx0213. ')
+                        uf = codecs.decode(bad_filename, 'shift_jisx0213')
 
-                if not filename.endswith('/'):
-                    with open(filename, 'wb') as dest:
-                        dest.write(zip_ref.read(f))
+                    filename = os.path.join(directory, uf)
+                    if not os.path.exists(os.path.dirname(filename)):
+                        try:
+                            os.makedirs(os.path.dirname(filename))
+                        except OSError as exc:
+                            if exc.errno != errno.EEXIST:
+                                raise
 
+                    if not filename.endswith('/'):
+                        with open(filename, 'wb') as dest:
+                            dest.write(zip_ref.read(f))
 
-# Button for selecting ZIP to extract
-extractBrowseButton = tk.Button(text="Select ZIP file(s)", command=selectZipFile, bg='green', fg='white',
-                                font=('helvetica', 12, 'bold'))
-canvas1.create_window(125, 140, window=extractBrowseButton)
-
-# Button to extract selected ZIP file
-extractZipButton = tk.Button(text="Extract ZIP file(s)", command=extractZipFile, bg='green', fg='white',
-                             font=('helvetica', 12, 'bold'))
-canvas1.create_window(125, 190, window=extractZipButton)
-
-
-# Window close confirmation
-def windowClose():
-    if messagebox.askokcancel("Quit", "Do you want to quit?"):
-        root.destroy()
+    # Window close confirmation
+    def windowClose(self):
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.master.destroy()
 
 
-# Close application button
-closeApplicationButton = tk.Button(text="Close Application", command=windowClose, bg='red', fg='white',
-                                   font=('helvetica', 12, 'bold'))
-canvas1.create_window(235, 300, window=closeApplicationButton)
+def main():
+    root = tk.Tk()
+    app = MainApplication(root)
+    root.mainloop()
 
 
 if __name__ == "__main__":
-    root.protocol("WM_DELETE_WINDOW", windowClose)
-    root.mainloop()
+    main()
