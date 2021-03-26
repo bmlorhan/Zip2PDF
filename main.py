@@ -39,10 +39,6 @@ class MainApplication:
         self.canvas1 = tk.Canvas(master, width=450, height=450, bg='lightsteelblue2', relief='raised')
         self.canvas1.pack()
 
-        # Icons
-        icon1 = tk.PhotoImage(file='icons/ZIP2PDF_Logo.png')
-        master.iconphoto(True, icon1)
-
         # Labels
         # Application Name Label
         self.app_name_label = tk.Label(master, text='Zip2PDF', bg='lightsteelblue2')
