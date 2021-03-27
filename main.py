@@ -2,6 +2,9 @@
     The primary functions are to allow the user to extract selected ZIP files
     and then convert image files to a single PDF."""
 
+# TODO
+# Change to grid GUI system for responsiveness
+
 # required modules
 import errno
 import os
@@ -16,6 +19,9 @@ from tkinter import filedialog
 from tkinter import messagebox
 # Image to PDF libraries
 import img2pdf
+
+# PDF merging libraries
+from PyPDF2 import PdfFileMerger
 
 # This import is specifically to address an error post packaging
 from pikepdf import _cpphelpers
@@ -36,7 +42,7 @@ class MainApplication:
 
         # Canvas
         # Create window with labels above appropriate buttons
-        self.canvas1 = tk.Canvas(master, width=450, height=450, bg='lightsteelblue2', relief='raised')
+        self.canvas1 = tk.Canvas(master, width=650, height=650, bg='lightsteelblue2', relief='raised')
         self.canvas1.pack()
 
         # Labels
@@ -65,6 +71,11 @@ class MainApplication:
         self.convert_image_button = tk.Button(text="Convert Files to PDF", command=self.convert_image_file,
                                               bg='green', fg='white', font=('helvetica', 12, 'bold'))
         self.canvas1.create_window(325, 190, window=self.convert_image_button)
+
+        # Button for converting selected file(s) to PDF and combining them with existing PDF
+        self.convert_and_combine_button = tk.Button(text="Combine PDF files", command=self.combine_pdf_files,
+                                                    bg='green', fg='white', font=('helvetica', 12, 'bold'))
+        self.canvas1.create_window(325, 240, window=self.convert_and_combine_button)
 
         # Button for selecting ZIP to extract
         self.extract_browse_button = tk.Button(text="Select ZIP file(s)", command=self.select_zip_file,
@@ -96,6 +107,24 @@ class MainApplication:
         export_file_path = filedialog.asksaveasfilename(defaultextension='.pdf')
         with open(export_file_path, "wb") as pdf_file:
             pdf_file.write(img2pdf.convert(self.image_list))
+
+    @staticmethod                                      # static until further notice
+    def combine_pdf_files():
+        """ Combines PDF files to create a single file"""
+        merger = PdfFileMerger()
+        selected_pdfs_list = []
+        selected_pdfs = filedialog.askopenfilenames()
+
+        # adds selected PDFs to list for later use
+        for pdfs in selected_pdfs:
+            selected_pdfs_list.append(pdfs)
+
+        # select file name and save location of final PDF output
+        final_pdf_file_path = filedialog.asksaveasfilename(defaultextension='.pdf')
+        with open(final_pdf_file_path, 'wb') as final_pdf:
+            for pdfs in selected_pdfs_list:
+                merger.append(pdfs)
+            merger.write(final_pdf)
 
     # Select ZIP file function
     def select_zip_file(self):
