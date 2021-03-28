@@ -2,8 +2,6 @@
     The primary functions are to allow the user to extract selected ZIP files
     and then convert image files to a single PDF."""
 
-# TODO
-# Change to grid GUI system for responsiveness
 
 # required modules
 import errno
@@ -42,14 +40,14 @@ class MainApplication:
 
         # Canvas
         # Create window with labels above appropriate buttons
-        self.canvas1 = tk.Canvas(master, width=650, height=650, bg='lightsteelblue2', relief='raised')
+        self.canvas1 = tk.Canvas(master, width=450, height=475, bg='lightsteelblue2', relief='raised')
         self.canvas1.pack()
 
         # Labels
         # Application Name Label
         self.app_name_label = tk.Label(master, text='Zip2PDF', bg='lightsteelblue2')
         self.app_name_label.config(font=('helvetica', 20))
-        self.canvas1.create_window(235, 60, window=self.app_name_label)
+        self.canvas1.create_window(235, 40, window=self.app_name_label)
 
         # Extract Function Label
         self.extract_label = tk.Label(master, text='Extract ZIP', bg='lightsteelblue2')
@@ -90,7 +88,7 @@ class MainApplication:
         # Close application button
         self.close_application_button = tk.Button(text="Close Application", command=self.window_close,
                                                   bg='red', fg='white', font=('helvetica', 12, 'bold'))
-        self.canvas1.create_window(235, 300, window=self.close_application_button)
+        self.canvas1.create_window(235, 400, window=self.close_application_button)
 
     # Functions
     # Select Image file(s) function.
@@ -122,8 +120,8 @@ class MainApplication:
         # select file name and save location of final PDF output
         final_pdf_file_path = filedialog.asksaveasfilename(defaultextension='.pdf')
         with open(final_pdf_file_path, 'wb') as final_pdf:
-            for pdfs in selected_pdfs_list:
-                merger.append(pdfs)
+            for pdf_files in selected_pdfs_list:
+                merger.append(pdf_files)
             merger.write(final_pdf)
 
     # Select ZIP file function
@@ -170,7 +168,7 @@ class MainApplication:
     # Window close confirmation
     def window_close(self):
         """ Basic windows close confirmation message."""
-        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        if messagebox.askokcancel("Quit", "Do you want to close the application?"):
             self.master.destroy()
 
 
@@ -178,6 +176,7 @@ class MainApplication:
 def main():
     """ application loop """
     root = tk.Tk()
+    root.resizable(False, False)  # prevent window resizing
     MainApplication(root)
     root.mainloop()
 
