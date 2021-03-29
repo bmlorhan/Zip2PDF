@@ -143,16 +143,15 @@ class MainApplication:
             with ZipFile(file_path, 'r') as zip_ref:
                 for files_in_zip in zip_ref.infolist():
                     bad_filename = files_in_zip.filename
-                    if bytes != str:
-                        bad_filename = bytes(bad_filename, 'cp437')
-
-                    # decode to sjis
+                    # tries to encode using cp437 first
                     try:
-                        decoded_files = codecs.decode(bad_filename, 'sjis')
-                    except UnicodeDecodeError:
-                        print('uf did not decode to "sjis", attempting to decode to shift_jisx0213. ')
-                        decoded_files = codecs.decode(bad_filename, 'shift_jisx0213')
+                        decoded_files = bad_filename.encode('cp437').decode('sjis')
+                    # if cp437 doesn't work, tries cp932. Mainly for Katakana
+                    except UnicodeEncodeError:
+                        print('uf did not decode to "sjis", attempting to decode to sjis/ ')   # shift_jisx0213
+                        decoded_files = bad_filename.encode('cp932').decode('sjis')
 
+                    # Saves unzipped file to the same location as original ZIP file.
                     filename = os.path.join(directory, decoded_files)
                     if not os.path.exists(os.path.dirname(filename)):
                         try:
