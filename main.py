@@ -60,10 +60,16 @@ class MainApplication:
         self.canvas1.create_window(325, 100, window=self.convert_label)
 
         # Buttons
-        # Button for selecting Image File(s) to convert
+        # Button for selecting individual image file(s) to convert
         self.convert_browse_button = tk.Button(text="Select Image file(s)", command=self.select_image_file,
                                                bg='green', fg='white', font=('helvetica', 12, 'bold'))
         self.canvas1.create_window(325, 140, window=self.convert_browse_button)
+
+        # Button for selecting image folder(s) to convert all images inside.
+        self.convert_browse_image_folder_button = tk.Button(text='Select Image Folder(s)',
+                                                            command=self.select_image_folder,
+                                                            bg='green', fg='white', font=('helvetica', 12, 'bold'))
+        self.canvas1.create_window(325, 290, window=self.convert_browse_image_folder_button)
 
         # Button for converting selected file(s) to PDF
         self.convert_image_button = tk.Button(text="Convert Files to PDF", command=self.convert_image_file,
@@ -106,7 +112,25 @@ class MainApplication:
         with open(export_file_path, "wb") as pdf_file:
             pdf_file.write(img2pdf.convert(self.image_list))
 
-    @staticmethod                                      # static until further notice
+    # Select image folder(s) function and convert all image files inside to PDF
+    @staticmethod
+    def select_image_folder():
+        """ Converts ALL image files within the selected image folder to a single PDF"""
+        image_folder_path = filedialog.askdirectory()
+        image_folder_save_path = filedialog.asksaveasfilename(defaultextension='pdf')
+        with open(image_folder_save_path, 'wb') as save_folder:
+            image_list = []
+            for file_name in os.listdir(image_folder_path):
+                if not file_name.endswith('.jpg'):
+                    continue
+                path = os.path.join(image_folder_path, file_name)
+                if os.path.isdir(path):
+                    continue
+                image_list.append(path)
+            save_folder.write(img2pdf.convert(image_list))
+
+    # Combine PDF files function
+    @staticmethod
     def combine_pdf_files():
         """ Combines PDF files to create a single file"""
         merger = PdfFileMerger()
