@@ -2,14 +2,13 @@
     The primary functions are to allow the user to extract selected ZIP files
     and then convert image files to a single PDF."""
 
-
 # required modules
 import errno
 import os
-import codecs
 
 # ZIP extracting libraries
 from zipfile import ZipFile
+from unrar import rarfile
 
 # GUI libraries
 import tkinter as tk
@@ -82,12 +81,12 @@ class MainApplication:
         self.canvas1.create_window(325, 240, window=self.convert_and_combine_button)
 
         # Button for selecting ZIP to extract
-        self.extract_browse_button = tk.Button(text="Select ZIP file(s)", command=self.select_zip_file,
+        self.extract_browse_button = tk.Button(text="Select Archive file(s)", command=self.select_zip_file,
                                                bg='green', fg='white', font=('helvetica', 12, 'bold'))
         self.canvas1.create_window(125, 140, window=self.extract_browse_button)
 
         # Button to extract selected ZIP file
-        self.extract_zip_button = tk.Button(text="Extract ZIP file(s)", command=self.extract_zip_file,
+        self.extract_zip_button = tk.Button(text="Extract Archive file(s)", command=self.extract_zip_file,
                                             bg='green', fg='white', font=('helvetica', 12, 'bold'))
         self.canvas1.create_window(125, 190, window=self.extract_zip_button)
 
@@ -96,11 +95,14 @@ class MainApplication:
                                                   bg='red', fg='white', font=('helvetica', 12, 'bold'))
         self.canvas1.create_window(235, 400, window=self.close_application_button)
 
+        # Variables
+        self.image_list = []
+        self.zip_file_path_list = []
+
     # Functions
     # Select Image file(s) function.
     def select_image_file(self):
         """ User selects the image file(s) they wish to convert to PDF"""
-        self.image_list = []
         image_file_path = filedialog.askopenfilenames()
         for images in image_file_path:
             self.image_list.append(images)
@@ -156,37 +158,58 @@ class MainApplication:
 
     # ZIP Extraction function
     def extract_zip_file(self):
-        """ Extracts the user selected file(s). Saves them to the same location as the ZIP file(s) with the same name"""
+        """ Extracts the user selected file(s).
+        Saves them to the same location as the original archive with the same name"""
+        # Dictionary to store file extensions and their appropriate extraction function
+        archive_dict = {
+            '.zip': ZipFile,
+            '.rar': rarfile.RarFile,
+        }
+
         # get zip file name
         zip_folder_name = self.zip_file_path_list
-
+        print(zip_folder_name)
         for file_path in zip_folder_name:
+            # get File name and extension.
+            # Extension is used to use the right filetype library function for extraction.
+            file_name, file_extension = os.path.splitext(file_path)
+
             # path and directory for extracted files.
             # Creates directory in the same location as ZIP file, under the same name. Removes '.zip'
-            directory = file_path.replace('.zip', '')
-            with ZipFile(file_path, 'r') as zip_ref:
-                for files_in_zip in zip_ref.infolist():
-                    bad_filename = files_in_zip.filename
-                    # tries to encode using cp437 first
-                    try:
-                        decoded_files = bad_filename.encode('cp437').decode('sjis')
-                    # if cp437 doesn't work, tries cp932. Mainly for Katakana
-                    except UnicodeEncodeError:
-                        print('uf did not decode to "sjis", attempting to decode to sjis/ ')   # shift_jisx0213
-                        decoded_files = bad_filename.encode('cp932').decode('sjis')
+            directory = file_path.replace(file_extension, '')
+            with archive_dict[file_extension](file_path, 'r') as archive_ref:
+                for files_in_archive in archive_ref.infolist():
+                    bad_filename = files_in_archive.filename
+
+                    # Runs encode_decode function for Japanese Kanji, Hiragana, and Katakana
+                    decoded_files = self.encode_decode_function(bad_filename)
 
                     # Saves unzipped file to the same location as original ZIP file.
-                    filename = os.path.join(directory, decoded_files)
-                    if not os.path.exists(os.path.dirname(filename)):
+                    final_file_name = os.path.join(directory, decoded_files)
+
+                    if not os.path.exists(os.path.dirname(final_file_name)):
                         try:
-                            os.makedirs(os.path.dirname(filename))
+                            os.makedirs(os.path.dirname(final_file_name))
                         except OSError as exc:
                             if exc.errno != errno.EEXIST:
                                 raise
 
-                    if not filename.endswith('/'):
-                        with open(filename, 'wb') as dest:
-                            dest.write(zip_ref.read(files_in_zip))
+                    if not final_file_name.endswith('/'):
+                        with open(final_file_name, 'wb') as dest:
+                            dest.write(archive_ref.read(files_in_archive))
+
+    # Encode / Decode function
+    @staticmethod
+    def encode_decode_function(bad_filename):
+        """ Function tries to encode to 'cp437' and decode to 'sjis'.
+        If it cannot be encoded to 'cp437' it will attempt to use 'cp932'. This is primarily for Katakana"""
+        # tries to encode using cp437 first
+        try:
+            decoded_files = bad_filename.encode('cp437').decode('sjis')
+        # if cp437 doesn't work, tries cp932. Mainly for Katakana
+        except UnicodeEncodeError:  # shift_jisx0213
+            decoded_files = bad_filename.encode('cp932').decode('sjis')
+        return decoded_files
 
     # Window close confirmation
     def window_close(self):
