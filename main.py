@@ -9,6 +9,7 @@ import os
 # ZIP extracting libraries
 from zipfile import ZipFile
 from unrar import rarfile
+from py7zr import SevenZipFile
 
 # GUI libraries
 import tkinter as tk
@@ -81,12 +82,12 @@ class MainApplication:
         self.canvas1.create_window(325, 240, window=self.convert_and_combine_button)
 
         # Button for selecting ZIP to extract
-        self.extract_browse_button = tk.Button(text="Select Archive file(s)", command=self.select_zip_file,
+        self.extract_browse_button = tk.Button(text="Select Archive file(s)", command=self.select_archive_file,
                                                bg='green', fg='white', font=('helvetica', 12, 'bold'))
         self.canvas1.create_window(125, 140, window=self.extract_browse_button)
 
         # Button to extract selected ZIP file
-        self.extract_zip_button = tk.Button(text="Extract Archive file(s)", command=self.extract_zip_file,
+        self.extract_zip_button = tk.Button(text="Extract Archive file(s)", command=self.extract_archive_file,
                                             bg='green', fg='white', font=('helvetica', 12, 'bold'))
         self.canvas1.create_window(125, 190, window=self.extract_zip_button)
 
@@ -95,8 +96,11 @@ class MainApplication:
                                                   bg='red', fg='white', font=('helvetica', 12, 'bold'))
         self.canvas1.create_window(235, 400, window=self.close_application_button)
 
-        # Variables
+        # Global Variables used in various functions
+        # Used in select_image_file and convert_image_file
         self.image_list = []
+
+        # Used in select_archive_file and extract_archive_file
         self.zip_file_path_list = []
 
     # Functions
@@ -151,52 +155,71 @@ class MainApplication:
             merger.write(final_pdf)
 
     # Select ZIP file function
-    def select_zip_file(self):
+    def select_archive_file(self):
         """ User selects the ZIP file(s) they wish to extract via Windows Explorer"""
         zip_file_path = filedialog.askopenfilenames()
         self.zip_file_path_list = list(zip_file_path)
 
     # ZIP Extraction function
-    def extract_zip_file(self):
+    def extract_archive_file(self):
         """ Extracts the user selected file(s).
         Saves them to the same location as the original archive with the same name"""
         # Dictionary to store file extensions and their appropriate extraction function
         archive_dict = {
             '.zip': ZipFile,
             '.rar': rarfile.RarFile,
+            '.7z': SevenZipFile,
         }
 
         # get zip file name
         zip_folder_name = self.zip_file_path_list
-        print(zip_folder_name)
         for file_path in zip_folder_name:
-            # get File name and extension.
+
+            # get file name and extension.
             # Extension is used to use the right filetype library function for extraction.
             file_name, file_extension = os.path.splitext(file_path)
-
-            # path and directory for extracted files.
-            # Creates directory in the same location as ZIP file, under the same name. Removes '.zip'
-            directory = file_path.replace(file_extension, '')
             with archive_dict[file_extension](file_path, 'r') as archive_ref:
-                for files_in_archive in archive_ref.infolist():
-                    bad_filename = files_in_archive.filename
 
-                    # Runs encode_decode function for Japanese Kanji, Hiragana, and Katakana
-                    decoded_files = self.encode_decode_function(bad_filename)
+                # This try loop is because SevenZipFile's attribute is named differently than ZipFile and RarFile
+                try:
+                    for files_in_archive in archive_ref.infolist():
+                        bad_filename = files_in_archive.filename
 
-                    # Saves unzipped file to the same location as original ZIP file.
-                    final_file_name = os.path.join(directory, decoded_files)
+                        self.save_extractions(bad_filename, file_name, archive_ref, files_in_archive)
 
-                    if not os.path.exists(os.path.dirname(final_file_name)):
-                        try:
-                            os.makedirs(os.path.dirname(final_file_name))
-                        except OSError as exc:
-                            if exc.errno != errno.EEXIST:
-                                raise
+                # An AttributeError is raised, so the exception uses SevenZipFile's attribute.
+                # This may be a problem if more libraries are supported and also have different attribute names
+                except AttributeError:
+                    for files_in_archive in archive_ref.getnames():
+                        bad_filename = archive_ref.filename
+                        archive_ref.reset()
+                        self.save_extractions(bad_filename, file_name, archive_ref, files_in_archive)
 
-                    if not final_file_name.endswith('/'):
-                        with open(final_file_name, 'wb') as dest:
-                            dest.write(archive_ref.read(files_in_archive))
+    # Save files
+    def save_extractions(self, bad_filename, file_name, archive_ref, files_in_archive):
+
+        # Runs encode_decode function for Japanese Kanji, Hiragana, and Katakana
+        decoded_files = self.encode_decode_function(bad_filename)
+        # Saves unzipped file to the same location as original ZIP file.
+        final_file_name = os.path.join(file_name, decoded_files)
+        if not os.path.exists(os.path.dirname(final_file_name)):
+            try:
+                os.makedirs(os.path.dirname(final_file_name))
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:
+                    raise
+
+        if not final_file_name.endswith('/'):
+            with open(final_file_name, 'wb') as dest:
+
+                # Similar try loop as in extract_zip_file
+                try:
+                    dest.write(archive_ref.read(files_in_archive))
+
+                # SevenZipFile extraction works differently from ZipFile and RarFile
+                # and uses different attribute names"
+                except TypeError:
+                    archive_ref.extractall(file_name)
 
     # Encode / Decode function
     @staticmethod
