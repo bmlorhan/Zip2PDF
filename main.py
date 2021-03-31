@@ -27,7 +27,9 @@ from pikepdf import _cpphelpers
 
 # Main Application class
 class MainApplication:
-    """ Builds out the GUI """
+    """
+    Builds out the GUI
+    """
 
     # pylint: disable=too-many-instance-attributes
     # 12 is reasonable in this case
@@ -106,14 +108,18 @@ class MainApplication:
     # Functions
     # Select Image file(s) function.
     def select_image_file(self):
-        """ User selects the image file(s) they wish to convert to PDF"""
+        """
+        User selects the image file(s) they wish to convert to PDF
+        """
         image_file_path = filedialog.askopenfilenames()
         for images in image_file_path:
             self.image_list.append(images)
 
     # Convert to PDF function
     def convert_image_file(self):
-        """ Converts the selected images and merges them into a single PDF at the desired location and name"""
+        """
+        Converts the selected images and merges them into a single PDF at the desired location and name
+        """
         export_file_path = filedialog.asksaveasfilename(defaultextension='.pdf')
         with open(export_file_path, "wb") as pdf_file:
             pdf_file.write(img2pdf.convert(self.image_list))
@@ -121,7 +127,9 @@ class MainApplication:
     # Select image folder(s) function and convert all image files inside to PDF
     @staticmethod
     def select_image_folder():
-        """ Converts ALL image files within the selected image folder to a single PDF"""
+        """
+        Converts ALL image files within the selected image folder to a single PDF
+        """
         image_folder_path = filedialog.askdirectory()
         image_folder_save_path = filedialog.asksaveasfilename(defaultextension='pdf')
         with open(image_folder_save_path, 'wb') as save_folder:
@@ -138,7 +146,9 @@ class MainApplication:
     # Combine PDF files function
     @staticmethod
     def combine_pdf_files():
-        """ Combines PDF files to create a single file"""
+        """
+        Combines PDF files to create a single file
+        """
         merger = PdfFileMerger()
         selected_pdfs_list = []
         selected_pdfs = filedialog.askopenfilenames()
@@ -156,14 +166,18 @@ class MainApplication:
 
     # Select ZIP file function
     def select_archive_file(self):
-        """ User selects the ZIP file(s) they wish to extract via Windows Explorer"""
+        """
+        User selects the ZIP file(s) they wish to extract via Windows Explorer
+        """
         zip_file_path = filedialog.askopenfilenames()
         self.zip_file_path_list = list(zip_file_path)
 
     # ZIP Extraction function
     def extract_archive_file(self):
-        """ Extracts the user selected file(s).
-        Saves them to the same location as the original archive with the same name"""
+        """
+        Extracts the user selected file(s).
+        Saves them to the same location as the original archive with the same name
+        """
         # Dictionary to store file extensions and their appropriate extraction function
         archive_dict = {
             '.zip': ZipFile,
@@ -190,13 +204,17 @@ class MainApplication:
                 # An AttributeError is raised, so the exception uses SevenZipFile's attribute.
                 # This may be a problem if more libraries are supported and also have different attribute names
                 except AttributeError:
-                    for files_in_archive in archive_ref.getnames():
-                        bad_filename = archive_ref.filename
-                        archive_ref.reset()
-                        self.save_extractions(bad_filename, file_name, archive_ref, files_in_archive)
+
+                    # Testing shows that encoding/decoding for Japanese characters is not needed with SevenZipFile
+                    # Using a similar for-loop, as above, causes program freeze if .7z is too large.
+                    archive_ref.extractall(file_name)
 
     # Save files
     def save_extractions(self, bad_filename, file_name, archive_ref, files_in_archive):
+        """
+        Function is for encoding and decoding, then saving the extracted files.
+        It is currently only being used for .zip and .rar files, respectively.
+        """
 
         # Runs encode_decode function for Japanese Kanji, Hiragana, and Katakana
         decoded_files = self.encode_decode_function(bad_filename)
@@ -211,21 +229,15 @@ class MainApplication:
 
         if not final_file_name.endswith('/'):
             with open(final_file_name, 'wb') as dest:
-
-                # Similar try loop as in extract_zip_file
-                try:
-                    dest.write(archive_ref.read(files_in_archive))
-
-                # SevenZipFile extraction works differently from ZipFile and RarFile
-                # and uses different attribute names"
-                except TypeError:
-                    archive_ref.extractall(file_name)
+                dest.write(archive_ref.read(files_in_archive))
 
     # Encode / Decode function
     @staticmethod
     def encode_decode_function(bad_filename):
-        """ Function tries to encode to 'cp437' and decode to 'sjis'.
-        If it cannot be encoded to 'cp437' it will attempt to use 'cp932'. This is primarily for Katakana"""
+        """
+        Function tries to encode to 'cp437' and decode to 'sjis'.
+        If it cannot be encoded to 'cp437' it will attempt to use 'cp932'. This is primarily for Katakana
+        """
         # tries to encode using cp437 first
         try:
             decoded_files = bad_filename.encode('cp437').decode('sjis')
@@ -236,14 +248,18 @@ class MainApplication:
 
     # Window close confirmation
     def window_close(self):
-        """ Basic windows close confirmation message."""
+        """
+        Basic windows close confirmation message.
+        """
         if messagebox.askokcancel("Quit", "Do you want to close the application?"):
             self.master.destroy()
 
 
 # Application
 def main():
-    """ application loop """
+    """
+    application loop
+    """
     root = tk.Tk()
     root.resizable(False, False)  # prevent window resizing
     MainApplication(root)
