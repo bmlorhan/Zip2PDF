@@ -6,15 +6,17 @@
 import errno
 import os
 
+# GUI libraries
+import tkinter as tk
+from tkinter import filedialog
+from tkinter import messagebox
+from tkinter.ttk import Progressbar
+
 # ZIP extracting libraries
 from zipfile import ZipFile
 from unrar import rarfile
 from py7zr import SevenZipFile
 
-# GUI libraries
-import tkinter as tk
-from tkinter import filedialog
-from tkinter import messagebox
 # Image to PDF libraries
 import img2pdf
 
@@ -171,6 +173,7 @@ class MainApplication:
         """
         zip_file_path = filedialog.askopenfilenames()
         self.zip_file_path_list = list(zip_file_path)
+        print(len(self.zip_file_path_list))
 
     # ZIP Extraction function
     def extract_archive_file(self):
@@ -187,6 +190,7 @@ class MainApplication:
 
         # get zip file name
         zip_folder_name = self.zip_file_path_list
+
         for file_path in zip_folder_name:
 
             # get file name and extension.
@@ -196,6 +200,7 @@ class MainApplication:
 
                 # This try loop is because SevenZipFile's attribute is named differently than ZipFile and RarFile
                 try:
+
                     for files_in_archive in archive_ref.infolist():
                         bad_filename = files_in_archive.filename
 
@@ -220,6 +225,7 @@ class MainApplication:
         decoded_files = self.encode_decode_function(bad_filename)
         # Saves unzipped file to the same location as original ZIP file.
         final_file_name = os.path.join(file_name, decoded_files)
+
         if not os.path.exists(os.path.dirname(final_file_name)):
             try:
                 os.makedirs(os.path.dirname(final_file_name))
