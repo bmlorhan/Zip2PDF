@@ -16,6 +16,7 @@ from tkinter.ttk import Progressbar
 from zipfile import ZipFile
 from unrar import rarfile
 from py7zr import SevenZipFile
+from tarfile import TarFile
 
 # Image to PDF libraries
 import img2pdf
@@ -173,7 +174,6 @@ class MainApplication:
         """
         zip_file_path = filedialog.askopenfilenames()
         self.zip_file_path_list = list(zip_file_path)
-        print(len(self.zip_file_path_list))
 
     # ZIP Extraction function
     def extract_archive_file(self):
@@ -186,6 +186,7 @@ class MainApplication:
             '.zip': ZipFile,
             '.rar': rarfile.RarFile,
             '.7z': SevenZipFile,
+            '.tar': TarFile,
         }
 
         # get zip file name
@@ -206,7 +207,7 @@ class MainApplication:
 
                         self.save_extractions(bad_filename, file_name, archive_ref, files_in_archive)
 
-                # An AttributeError is raised, so the exception uses SevenZipFile's attribute.
+                # An AttributeError is raised, so the exception uses SevenZipFile/TarFile's attribute.
                 # This may be a problem if more libraries are supported and also have different attribute names
                 except AttributeError:
 
