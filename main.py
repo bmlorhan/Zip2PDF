@@ -45,61 +45,59 @@ class MainApplication:
 
         # Canvas
         # Create window with labels above appropriate buttons
-        self.canvas1 = tk.Canvas(master, width=450, height=475, bg='lightsteelblue2', relief='raised')
-        self.canvas1.pack()
+        self.main_canvas = tk.Canvas(master, width=450, height=475, bg='lightsteelblue2', relief='raised')
+        self.main_canvas.pack()
 
         # Labels
         # Application Name Label
         self.app_name_label = tk.Label(master, text='Zip2PDF', bg='lightsteelblue2')
         self.app_name_label.config(font=('helvetica', 20))
-        self.canvas1.create_window(235, 40, window=self.app_name_label)
+        self.main_canvas.create_window(235, 40, window=self.app_name_label)
 
         # Extract Function Label
-        self.extract_label = tk.Label(master, text='Extract ZIP', bg='lightsteelblue2')
-        self.extract_label.config(font=('helvetica', 16))
-        self.canvas1.create_window(125, 100, window=self.extract_label)
+        self.extract_label = tk.Label(master, text='Extract ZIP', bg='lightsteelblue2', font=('helvetica', 16))
+        self.main_canvas.create_window(125, 100, window=self.extract_label)
 
         # Convert Function Label
-        self.convert_label = tk.Label(master, text='Convert to PDF', bg='lightsteelblue2')
-        self.convert_label.config(font=('helvetica', 16))
-        self.canvas1.create_window(325, 100, window=self.convert_label)
+        self.convert_label = tk.Label(master, text='Convert to PDF', bg='lightsteelblue2',font=('helvetica', 16))
+        self.main_canvas.create_window(325, 100, window=self.convert_label)
 
         # Buttons
         # Button for selecting individual image file(s) to convert
         self.convert_browse_button = tk.Button(text="Select Image file(s)", command=self.select_image_file,
                                                bg='green', fg='white', font=('helvetica', 12, 'bold'))
-        self.canvas1.create_window(325, 140, window=self.convert_browse_button)
+        self.main_canvas.create_window(325, 140, window=self.convert_browse_button)
 
         # Button for selecting image folder(s) to convert all images inside.
         self.convert_browse_image_folder_button = tk.Button(text='Select Image Folder(s)',
                                                             command=self.select_image_folder,
                                                             bg='green', fg='white', font=('helvetica', 12, 'bold'))
-        self.canvas1.create_window(325, 290, window=self.convert_browse_image_folder_button)
+        self.main_canvas.create_window(325, 290, window=self.convert_browse_image_folder_button)
 
         # Button for converting selected file(s) to PDF
         self.convert_image_button = tk.Button(text="Convert Files to PDF", command=self.convert_image_file,
                                               bg='green', fg='white', font=('helvetica', 12, 'bold'))
-        self.canvas1.create_window(325, 190, window=self.convert_image_button)
+        self.main_canvas.create_window(325, 190, window=self.convert_image_button)
 
         # Button for converting selected file(s) to PDF and combining them with existing PDF
         self.convert_and_combine_button = tk.Button(text="Combine PDF files", command=self.combine_pdf_files,
                                                     bg='green', fg='white', font=('helvetica', 12, 'bold'))
-        self.canvas1.create_window(325, 240, window=self.convert_and_combine_button)
+        self.main_canvas.create_window(325, 240, window=self.convert_and_combine_button)
 
         # Button for selecting ZIP to extract
         self.extract_browse_button = tk.Button(text="Select Archive file(s)", command=self.select_archive_file,
                                                bg='green', fg='white', font=('helvetica', 12, 'bold'))
-        self.canvas1.create_window(125, 140, window=self.extract_browse_button)
+        self.main_canvas.create_window(125, 140, window=self.extract_browse_button)
 
         # Button to extract selected ZIP file
         self.extract_zip_button = tk.Button(text="Extract Archive file(s)", command=self.extract_archive_file,
                                             bg='green', fg='white', font=('helvetica', 12, 'bold'))
-        self.canvas1.create_window(125, 190, window=self.extract_zip_button)
+        self.main_canvas.create_window(125, 190, window=self.extract_zip_button)
 
         # Close application button
         self.close_application_button = tk.Button(text="Close Application", command=self.window_close,
                                                   bg='red', fg='white', font=('helvetica', 12, 'bold'))
-        self.canvas1.create_window(235, 400, window=self.close_application_button)
+        self.main_canvas.create_window(235, 400, window=self.close_application_button)
 
         # Global Variables used in various functions
         # Used in select_image_file and convert_image_file
@@ -194,17 +192,14 @@ class MainApplication:
 
         for file_path in zip_folder_name:
 
-            # get file name and extension.
             # Extension is used to use the right filetype library function for extraction.
             file_name, file_extension = os.path.splitext(file_path)
             with archive_dict[file_extension](file_path, 'r') as archive_ref:
 
                 # This try loop is because SevenZipFile's attribute is named differently than ZipFile and RarFile
                 try:
-
                     for files_in_archive in archive_ref.infolist():
                         bad_filename = files_in_archive.filename
-
                         self.save_extractions(bad_filename, file_name, archive_ref, files_in_archive)
 
                 # An AttributeError is raised, so the exception uses SevenZipFile/TarFile's attribute.
@@ -221,7 +216,6 @@ class MainApplication:
         Function is for encoding and decoding, then saving the extracted files.
         It is currently only being used for .zip and .rar files, respectively.
         """
-
         # Runs encode_decode function for Japanese Kanji, Hiragana, and Katakana
         decoded_files = self.encode_decode_function(bad_filename)
         # Saves unzipped file to the same location as original ZIP file.
