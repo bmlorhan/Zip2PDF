@@ -112,6 +112,7 @@ class MainApplication:
         """
         User selects the image file(s) they wish to convert to PDF
         """
+        self.image_list = []                            # Clear image_list before use.
         image_file_path = filedialog.askopenfilenames()
         for images in image_file_path:
             self.image_list.append(images)
